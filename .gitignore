@@ -1,3 +1,43 @@
+# --- Credenciales y variables de entorno ---
+.env
+.env.*
+*.token
+secrets.json
+ 
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+ENV/
+ 
+# --- Jupyter / Notebooks ---
+.ipynb_checkpoints/
+ 
+# --- Fabric / Spark ---
+.trident-cache/
+*.log
+ 
+# --- Node.js (para el frontend de la Fase 2) ---
+node_modules/
+dist/
+build/
+.next/
+ 
+# --- Sistema operativo / editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+ 
+# --- Datos locales de prueba (si generas CSVs/exports temporales) ---
+*.csv
+!docs/**/*.csv
+data/local/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
