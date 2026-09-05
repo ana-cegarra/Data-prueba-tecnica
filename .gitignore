@@ -34,9 +34,8 @@ Thumbs.db
 .idea/
  
 # --- Datos locales de prueba (si generas CSVs/exports temporales) ---
-*.csv
-!docs/**/*.csv
-data/local/
+*.csv 
+!api/data/*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
