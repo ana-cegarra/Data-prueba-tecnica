@@ -1,4 +1,4 @@
-# Prueba Técnica — Data & AI Engineer | Grenergy
+# Prueba Técnica — Data & AI Engineer
 
 Pipeline ETL en Microsoft Fabric para la ingesta de precios Day-Ahead de electricidad de España, Rumanía, Alemania y Polonia, con exposición vía API REST e interfaz de visualización.
 
