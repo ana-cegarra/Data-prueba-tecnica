@@ -1,0 +1,35 @@
+:root {
+  /* Paleta: panel de control energético, no un dashboard genérico */
+  --bg-base: #12181B;        /* fondo principal, carbón azulado oscuro */
+  --bg-surface: #1B2327;     /* paneles y tarjetas */
+  --bg-surface-hover: #212B30;
+  --border-subtle: #2A3438;
+  --text-primary: #E8EDEB;
+  --text-secondary: #8A9B96;
+  --accent: #1F6F54;         /* verde institucional, no terracota genérico */
+  --accent-hover: #278364;
+
+  /* Un color de identidad fijo por país, consistente en toda la app */
+  --country-es: #E8B84B;   /* ámbar */
+  --country-ro: #4B9FE8;   /* azul */
+  --country-de: #E85D4B;   /* rojo-naranja */
+  --country-pl: #7ED4A8;   /* verde menta */
+
+  --font-sans: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+#root {
+  min-height: 100vh;
+}
