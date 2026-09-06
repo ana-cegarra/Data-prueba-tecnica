@@ -17,11 +17,13 @@ app = FastAPI(
 # CORS: permite que el frontend React pueda hacer peticiones a esta API sin ser bloqueado por el navegador
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173",           # para seguir desarrollando en local
+        "https://data-prueba-tecnica.vercel.app",  # tu frontend en producción
+    ],
     allow_methods=["GET"],
     allow_headers=["*"],
 )
-
 
 @app.get("/health")
 def health_check():
