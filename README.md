@@ -2,6 +2,8 @@ Prueba Técnica — Data & AI Engineer
 
 Pipeline ETL en Microsoft Fabric para la ingesta de precios Day-Ahead de electricidad de España, Rumanía, Alemania y Polonia, con exposición vía API REST e interfaz de visualización.
 
+🔗 Interfaz desplegada: https://data-prueba-tecnica.vercel.app (la primera carga puede tardar hasta 60s si la API estuvo inactiva — ver Despliegue en producción)
+
 Todos los precios se normalizan y presentan en EUR/MWh, independientemente de la moneda de origen (Polonia publica en PLN; el resto ya en EUR), mediante conversión con el tipo de cambio oficial diario del banco central polaco (NBP) — ver Decisión técnica #3.
 
 Tabla de contenidos
@@ -121,7 +123,7 @@ Para esta prueba técnica el token se mantiene como variable en el notebook por 
 
 7. Exportación a CSV en vez de conexión en vivo al SQL Analytics Endpoint
 
-La arquitectura original planteaba que la API se conectara en vivo al SQL Analytics Endpoint que Fabric genera automáticamente para el Lakehouse. Al implementarlo, se encontró que el tenant de Grenergy tiene políticas de Conditional Access de Azure AD que bloquean la autenticación interactiva (probados los métodos ActiveDirectoryInteractive, ActiveDirectoryDeviceCode, y obtención de token vía azure-identity) desde aplicaciones no aprobadas explícitamente por el administrador del tenant — ver Retos específicos.
+La arquitectura original planteaba que la API se conectara en vivo al SQL Analytics Endpoint que Fabric genera automáticamente para el Lakehouse. Al implementarlo, se encontró que el tenant de Fabric utilizado tiene políticas de Conditional Access de Azure AD que bloquean la autenticación interactiva (probados los métodos ActiveDirectoryInteractive, ActiveDirectoryDeviceCode, y obtención de token vía azure-identity) desde aplicaciones no aprobadas explícitamente por el administrador del tenant — ver Retos específicos.
 
 Decisión: el propio notebook de Fabric (donde la autenticación ya funciona porque corre dentro del tenant) exporta las tablas Delta a CSV dentro de Files/exports/ del Lakehouse. Estos CSVs se descargan manualmente a api/data/ y la API los lee desde ahí. Es una solución pragmática dada la restricción de infraestructura, documentada explícitamente en vez de forzar una conexión que la organización no permite.
 
@@ -142,6 +144,15 @@ Limitación conocida: en el frontend, la API Key se expone en el bundle de JavaS
 Para superponer en una misma gráfica países con PT15M (España, Rumanía, Polonia) y PT60M (Alemania), el frontend remuestrea todos los países a promedios horarios antes de graficar (ComparisonChart.jsx, función mergeToHourlyBuckets). Esto alinea el eje temporal sin inventar datos: donde una fuente no tiene valor para una hora concreta (por los huecos documentados en la sección anterior), el punto queda como null, lo que Recharts renderiza como una discontinuidad visible en la línea (connectNulls={false}), consistente con la decisión de "fidelidad sobre completitud" del pipeline de ingesta.
 
 La vista de "detalle por país" (PriceChart.jsx) muestra los datos en su granularidad nativa (sin remuestrear), indicando explícitamente el intervalo (15min / 60min) y el número de puntos junto al título de cada gráfica.
+
+10. Despliegue público en plataformas gratuitas
+
+El enunciado permite que la solución funcione únicamente en local ("no es necesario un despliegue en producción, aunque se valorará positivamente"). Se optó por desplegar igualmente, usando exclusivamente planes gratuitos sin coste ni necesidad de tarjeta de crédito:
+
+Render (Free tier) para la API — elegido sobre Railway, cuyo plan de prueba gratuito consume un crédito limitado de un solo uso.
+Vercel (Hobby, gratuito permanente para proyectos no comerciales) para el frontend estático generado por Vite.
+
+Esta decisión implica aceptar la limitación de "cold start" de Render en su plan gratuito (ver sección de reproducción), considerada un compromiso razonable frente al coste de un plan de pago para una prueba técnica de alcance acotado.
 
 Retos específicos por API y cómo se resolvieron
 
@@ -263,6 +274,17 @@ bash
 
 Disponible en http://localhost:5173. Requiere que la API (paso anterior) esté corriendo simultáneamente en otra terminal.
 
+Despliegue en producción
+
+Aunque el enunciado permite que la solución funcione únicamente en local, se optó por desplegarla públicamente para facilitar la revisión:
+
+Interfaz web: https://data-prueba-tecnica.vercel.app — desplegada en Vercel (plan gratuito Hobby)
+API REST: https://day-ahead-api.onrender.com — desplegada en Render (plan gratuito Free)
+
+Nota sobre el plan gratuito de Render: el servicio "duerme" tras un periodo de inactividad. La primera petición tras un periodo sin uso puede tardar 30-60 segundos en responder mientras el contenedor se reactiva; las siguientes son inmediatas. Esto es una limitación conocida y aceptada del plan gratuito, no un error de la aplicación.
+
+CORS: la API solo acepta peticiones desde localhost:5173 (desarrollo) y el dominio de producción de Vercel, restringido explícitamente en main.py en vez de usar un wildcard abierto.
+
 Estructura del repositorio
 ├── README.md                          # este documento
 ├── notebooks/
@@ -287,5 +309,5 @@ Limitaciones conocidas
 No se cubre el caso de caída total de una fuente durante una ventana prolongada (más allá de reintentos básicos); en producción se recomendaría añadir reintentos con backoff exponencial y alertas.
 El token de ENTSO-E se gestiona vía variable de entorno (os.environ.get) en el notebook; en producción debería vivir en Azure Key Vault.
 Los huecos de datos detectados en la fuente ENTSO-E para franjas horarias puntuales no se interpolan (ver Decisiones técnicas). En la gráfica comparativa, un hueco solo se muestra como discontinuidad visible cuando una hora completa carece de datos; si faltan solo algunas de las muestras de 15 minutos dentro de una hora (como ocurre en el caso documentado del 26-ago-2026), el promedio horario se calcula igualmente con las muestras disponibles, sin marcador visual de que la muestra fue parcial. La gráfica de detalle por país (datos en granularidad nativa) tampoco marca estos huecos, al no incluir marcadores null explícitos para los timestamps ausentes.
-La API REST no tiene conexión en vivo a Fabric; depende de una exportación manual periódica a CSV (ver Decisión técnica #7), motivada por restricciones de Conditional Access del tenant de Grenergy.
+La API REST no tiene conexión en vivo a Fabric; depende de una exportación manual periódica a CSV (ver Decisión técnica #7), motivada por restricciones de Conditional Access del tenant de Fabric utilizado.
 La API Key del frontend queda expuesta en el bundle de JavaScript servido al navegador (limitación inherente a cualquier VITE_* env var); aceptable para una demo local, no para producción.
